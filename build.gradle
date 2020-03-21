@@ -1,0 +1,51 @@
+plugins {
+	id 'org.springframework.boot' version '2.2.5.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+}
+
+group = 'ru.maxmorev.eshop'
+version = '0.0.1'
+sourceCompatibility = '13'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+ext {
+	set('springCloudVersion', "Hoxton.SR1")
+}
+
+dependencies {
+	annotationProcessor 'org.projectlombok:lombok'
+	implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.projectlombok:lombok'
+	implementation 'org.postgresql:postgresql'
+
+	//TEST
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	testImplementation('com.h2database:h2')
+	testImplementation('org.dbunit:dbunit:2.7.0')
+	testImplementation('org.junit.jupiter:junit-jupiter-api:5.6.0')
+	testImplementation('org.junit.jupiter:junit-jupiter-engine:5.6.0')
+	testImplementation('com.github.tomakehurst:wiremock-jre8:2.26.1')
+	testImplementation('org.springframework.cloud:spring-cloud-contract-wiremock')
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}

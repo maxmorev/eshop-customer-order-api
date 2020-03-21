@@ -1,0 +1,36 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  application:
+    name: eshop-customer-order-api
+  profiles:
+    active: test
+  messages:
+    basename: i18n/messages # for multiple properties just use comma separated values
+    encoding: UTF-8
+  jpa:
+    show-sql: true
+    ddl-auto: update
+    properties:
+      hibernate:
+        hbm2ddl.auto: update
+        use_sql_comments: true
+        format_sql: false
+        show_sql: true
+        max_fetch_depth: 5
+        jdbc:
+          fetch_size: 50
+          batch_size: 10
+          lob.non_contextual_creation: true
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+order:
+  expiredMinutes: 15
+cart:
+  maxItemsAmount: 3
+server:
+  port: 8080
+
+
