@@ -13,9 +13,10 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.config.ShoppingCartConfig;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
+import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCart;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartId;
+import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -39,7 +40,7 @@ public class ShoppingCartServiceTest {
     @PersistenceContext
     private EntityManager em;
 
-    private CommodityInfo commodityInfo = new CommodityInfo(
+    private PurchaseInfoRequest purchaseInfo = new PurchaseInfoRequest(
             5L,
             1,
             45f,
@@ -180,7 +181,7 @@ public class ShoppingCartServiceTest {
                 ShoppingCart res = shoppingCartService
                         .addBranchToShoppingCart(
                                 new ShoppingCartId(5L, 11L),
-                                commodityInfo);
+                                purchaseInfo.toEntity());
                 em.flush();
                 assertEquals(3, res.getItemsAmount());
 
@@ -208,14 +209,14 @@ public class ShoppingCartServiceTest {
                         .addBranchToShoppingCart(new ShoppingCartId(
                                         shoppingCartSet.getId().getBranchId(),
                                         shoppingCart.getId()),
-                                commodityInfo);
+                                purchaseInfo.toEntity());
                 assertEquals(shoppingCartConfig.getMaxItemsAmount(), res.getItemsAmount());
                 em.flush();
                 res = shoppingCartService
                         .addBranchToShoppingCart(
                                 new ShoppingCartId(shoppingCartSet.getId().getBranchId(),
                                         shoppingCart.getId()),
-                                commodityInfo);
+                                purchaseInfo.toEntity());
                 assertEquals(shoppingCartConfig.getMaxItemsAmount(), res.getItemsAmount());
             });
         });
@@ -237,7 +238,12 @@ public class ShoppingCartServiceTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void addIngnoreBranchToShoppingCartTest() {
-        commodityInfo.setAmount(4);
+        PurchaseInfoRequest pir = new PurchaseInfoRequest(
+                5L,
+                4,
+                45f,
+                "T-SHIRT",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png");
         shoppingCartService
                 .findShoppingCartById(11L).ifPresent(shoppingCart -> {
             shoppingCart.getShoppingSet().forEach(shoppingCartSet -> {
@@ -246,12 +252,11 @@ public class ShoppingCartServiceTest {
                         .addBranchToShoppingCart(new ShoppingCartId(shoppingCartSet
                                         .getId().getBranchId(),
                                         shoppingCart.getId()),
-                                commodityInfo);
+                                pir.toEntity());
                 em.flush();
                 assertEquals(2, res.getItemsAmount());
             });
         });
-        commodityInfo.setAmount(1);
     }
 
 

@@ -1,8 +1,6 @@
 package ru.maxmorev.eshop.customer.order.api.controller;
 
 
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
+import ru.maxmorev.eshop.customer.order.api.request.CreateOrderRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderIdRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
 import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
@@ -36,24 +35,35 @@ public class OrderPurchaseController {
 
     @RequestMapping(path = "/order/confirm/", method = RequestMethod.PUT)
     @ResponseBody
-    Message confirmOrder(@RequestBody
-                         @Valid OrderPaymentConfirmation orderPaymentConfirmation,
-                         Locale locale) {
+    public CustomerOrder confirmOrder(@RequestBody
+                                      @Valid OrderPaymentConfirmation orderPaymentConfirmation,
+                                      Locale locale) {
+        return orderPurchaseService.confirmPaymentOrder(orderPaymentConfirmation.getOrderId(),
+                PaymentProvider.valueOf(orderPaymentConfirmation.getPaymentProvider()),
+                orderPaymentConfirmation.getPaymentId()
+        );
+    }
 
-        orderPurchaseService.findOrder(orderPaymentConfirmation.getOrderId()).ifPresent(order -> {
-            orderPurchaseService.confirmPaymentOrder(
-                    order,
-                    PaymentProvider.valueOf(orderPaymentConfirmation.getPaymentProvider()),
-                    orderPaymentConfirmation.getPaymentId()
-            );
-        });
+    @RequestMapping(path = "/order/create/", method = RequestMethod.POST)
+    @ResponseBody
+    public CustomerOrder createOrder(@RequestBody
+                                     @Valid CreateOrderRequest createOrderRequest,
+                                     Locale locale) {
+        return orderPurchaseService
+                .createOrderFor(createOrderRequest.getCustomerId(),
+                        createOrderRequest.getPurchases());
+    }
 
+    @RequestMapping(path = "/order/remove/expired/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public Message removeExpiredOrder(@PathVariable(name = "id") Long id, Locale locale) {
+        orderPurchaseService.removeExpiredOrder(id);
         return new Message(Message.SUCCES, messageSource.getMessage("message_success", new Object[]{}, locale));
     }
 
     @RequestMapping(path = "/order/{id}/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
-    CustomerOrder customerOrder(
+    public CustomerOrder customerOrder(
             @PathVariable(name = "customerId") Long customerId,
             @PathVariable(name = "id") Long orderId,
             Locale locale) {
@@ -65,14 +75,24 @@ public class OrderPurchaseController {
 
     @RequestMapping(path = "/order/list/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
-    List<CustomerOrderDto> customerOrderList(@PathVariable(name = "customerId", required = true) Long customerId, Locale locale) {
+    public List<CustomerOrderDto> customerOrderList(@PathVariable(name = "customerId", required = true) Long customerId, Locale locale) {
         //TODO check auth customer.id with id in PathVariable
         return orderPurchaseService.findOrderListForCustomer(customerId);
     }
 
+    @RequestMapping(path = "/order/list/customer/{customerId}/status/{status}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<CustomerOrder> customerOrderListByStatus(@PathVariable(name = "customerId") Long customerId,
+                                                         @PathVariable(name = "status") String statusName,
+                                                         Locale locale) {
+        //TODO check auth customer.id with id in PathVariable
+        return orderPurchaseService
+                .findCustomerOrders(customerId, CustomerOrderStatus.valueOf(statusName));
+    }
+
     @RequestMapping(path = "/order/cancel/", method = RequestMethod.PUT)
     @ResponseBody
-    Message customerOrderCancel(
+    public Message customerOrderCancel(
             @Valid @RequestBody OrderIdRequest order,
             Locale locale) {
         //TODO check auth customer.id with id in PathVariable
@@ -81,22 +101,24 @@ public class OrderPurchaseController {
     }
 
 
-    @RequestMapping(path = "/order/{status}/{id}", method = RequestMethod.PUT)
+    @RequestMapping(path = "/order/{id}/{status}", method = RequestMethod.PUT)
     @ResponseBody
-    public Message setOrderStatus(
-            @PathVariable(name = "status", required = true) String status,
+    public CustomerOrder setOrderStatus(
             @PathVariable(name = "id", required = true) Long id,
+            @PathVariable(name = "status", required = true) String status,
             Locale locale) {
-        Optional<CustomerOrderStatus> orderStatus = Enums.getIfPresent(CustomerOrderStatus.class, status);
-        if (!orderStatus.isPresent())
+        CustomerOrderStatus statusValue;
+        try {
+            statusValue = CustomerOrderStatus.valueOf(status);
+        } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid status");
-        orderPurchaseService.setOrderStatus(id, orderStatus.get());
-        return new Message(Message.SUCCES, messageSource.getMessage("message_success", new Object[]{}, locale));
+        }
+        return orderPurchaseService.setOrderStatus(id, statusValue);
     }
 
     @RequestMapping(path = "/order/list/all", method = RequestMethod.GET)
     @ResponseBody
-    OrderGrid adminAllCustomerOrderList(
+    public OrderGrid adminAllCustomerOrderList(
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "rows", required = false) Integer rows,
             @RequestParam(value = "sort", required = false) String sortBy,
@@ -108,6 +130,12 @@ public class OrderPurchaseController {
                         rows,
                         sortBy,
                         order);
+    }
+
+    @RequestMapping(path = "/order/list/expired", method = RequestMethod.GET)
+    @ResponseBody
+    public List<CustomerOrder> findExpiredOrders() {
+        return orderPurchaseService.findExpiredOrders();
     }
 
 }

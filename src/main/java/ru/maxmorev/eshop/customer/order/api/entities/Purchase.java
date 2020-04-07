@@ -28,7 +28,7 @@ public class Purchase implements Serializable {
     private PurchaseId id;
 
     @Embedded
-    private CommodityInfo commodityInfo;
+    private PurchaseInfo purchaseInfo;
 
     @NotNull
     @JsonIgnore
@@ -39,9 +39,9 @@ public class Purchase implements Serializable {
     protected Purchase() {
     }
 
-    public Purchase(Long branchId, CustomerOrder customerOrder, CommodityInfo commodityInfo) {
+    public Purchase(Long branchId, CustomerOrder customerOrder, PurchaseInfo purchaseInfo) {
         this.id = new PurchaseId(branchId, customerOrder.getId());
-        this.commodityInfo = commodityInfo;
+        this.purchaseInfo = purchaseInfo;
         this.customerOrder = customerOrder;
     }
 
@@ -51,11 +51,11 @@ public class Purchase implements Serializable {
         if (!(o instanceof Purchase)) return false;
         Purchase purchase = (Purchase) o;
         return getId().equals(purchase.getId()) &&
-                getCommodityInfo().equals(purchase.getCommodityInfo());
+                getPurchaseInfo().equals(purchase.getPurchaseInfo());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getCommodityInfo());
+        return Objects.hash(getId(), getPurchaseInfo());
     }
 }

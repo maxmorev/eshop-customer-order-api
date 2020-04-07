@@ -1,6 +1,5 @@
 package ru.maxmorev.eshop.customer.order.api.controllers;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
@@ -16,12 +15,10 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderPurchaseControllerTest {
 
     private static final Long APPROVED_ORDER_ID = 25L;
+    private static final Long AWAITING_ORDER_ID = 16L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -66,7 +64,10 @@ public class OrderPurchaseControllerTest {
                 .content(opc.toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Success")));
+                .andExpect(jsonPath("$.id", is(16)))
+                .andExpect(jsonPath("$.paymentID", is("3HW05364355651909")))
+                .andExpect(jsonPath("$.purchases[0].id.branchId", is(5)))
+                .andExpect(jsonPath("$.status", is(CustomerOrderStatus.PAYMENT_APPROVED.name())));
 
     }
 
@@ -87,7 +88,7 @@ public class OrderPurchaseControllerTest {
                 .orderId(166L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
-        mockMvc.perform(put( "/order/confirm/")
+        mockMvc.perform(put("/order/confirm/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
@@ -113,7 +114,7 @@ public class OrderPurchaseControllerTest {
                 .orderId(25L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
-        mockMvc.perform(put( "/order/confirm/")
+        mockMvc.perform(put("/order/confirm/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
@@ -207,7 +208,7 @@ public class OrderPurchaseControllerTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void prepareToShipOk() throws Exception {
-        mockMvc.perform(put("/order/PREPARING_TO_SHIP/" + APPROVED_ORDER_ID))
+        mockMvc.perform(put("/order/" + APPROVED_ORDER_ID + "/PREPARING_TO_SHIP"))
                 .andDo(print())
                 .andExpect(status().is(200));
     }
@@ -223,7 +224,8 @@ public class OrderPurchaseControllerTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void prepareToShipInvalidIdTest() throws Exception {
-        mockMvc.perform(put("/order/PREPARING_TO_SHIP/" + 2929))
+
+        mockMvc.perform(put("/order/" + 2929 + "/PREPARING_TO_SHIP/"))
                 .andDo(print())
                 .andExpect(status().is(500))
                 .andExpect(jsonPath("$.message", is("Invalid order id")));
@@ -240,10 +242,27 @@ public class OrderPurchaseControllerTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void prepareToShipInvalidStatusTest() throws Exception {
-        mockMvc.perform(put("/order/PREPARING_TO_ROCK/" + APPROVED_ORDER_ID))
+        mockMvc.perform(put("/order/" + APPROVED_ORDER_ID + "/PREPARING_TO_ROCK"))
                 .andDo(print())
                 .andExpect(status().is(500))
                 .andExpect(jsonPath("$.message", is("Invalid status")));
+    }
+
+    @Test
+    @DisplayName("Should remove expired order by id")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void removeExpiredOrderTest() throws Exception {
+        mockMvc.perform(post("/order/remove/expired/" + AWAITING_ORDER_ID))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.message", is("Success")));
     }
 
 }

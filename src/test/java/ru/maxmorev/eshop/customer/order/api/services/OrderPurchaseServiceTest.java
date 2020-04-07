@@ -17,8 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
+import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
+import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 
 import javax.persistence.EntityManager;
@@ -46,7 +47,7 @@ public class OrderPurchaseServiceTest {
     @PersistenceContext
     private EntityManager em;
 
-    private CommodityInfo commodityInfo = new CommodityInfo(
+    private PurchaseInfoRequest purchaseInfo = new PurchaseInfoRequest(
             5L,
             1,
             45f,
@@ -79,7 +80,7 @@ public class OrderPurchaseServiceTest {
     })
     public void createOrderForTest() {
 
-        CustomerOrder newOrder = orderPurchaseService.createOrderFor(10L, List.of(commodityInfo));
+        CustomerOrder newOrder = orderPurchaseService.createOrderFor(10L, List.of(purchaseInfo));
         em.flush();
         Optional<CustomerOrder> order = orderPurchaseService.findOrder(newOrder.getId());
         assertTrue(order.isPresent());
@@ -105,7 +106,7 @@ public class OrderPurchaseServiceTest {
 
             Assertions.assertEquals(CustomerOrderStatus.AWAITING_PAYMENT, o.getStatus());
 
-            orderPurchaseService.confirmPaymentOrder(o, PaymentProvider.Paypal, "3HW05364355651909");
+            orderPurchaseService.confirmPaymentOrder(o.getId(), PaymentProvider.Paypal, "3HW05364355651909");
             em.flush();
 
             Optional<CustomerOrder> orderUpdate = orderPurchaseService.findOrder(AWAITING_PAYMENT_ORDER_ID);

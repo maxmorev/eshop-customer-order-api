@@ -15,10 +15,8 @@ import javax.validation.constraints.NotNull;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommodityInfo {
+public class PurchaseInfo {
 
-    @Transient
-    private @NotNull Long branchId;
     @Column(name = "amount", nullable = false)
     private @NotNull Integer amount;
     @Column(name = "price", nullable = false)

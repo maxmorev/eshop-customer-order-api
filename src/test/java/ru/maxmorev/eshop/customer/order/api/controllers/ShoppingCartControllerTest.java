@@ -13,9 +13,9 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
-import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartSet;
-import ru.maxmorev.eshop.customer.order.api.request.RequestShoppingCartSet;
+import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
+import ru.maxmorev.eshop.customer.order.api.request.RemoveFromCartRequest;
+import ru.maxmorev.eshop.customer.order.api.request.ShoppingCartSetRequest;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -54,17 +54,17 @@ public class ShoppingCartControllerTest {
                 .andExpect(jsonPath("$.shoppingSet[0].amount", is(2)));
     }
 
-    RequestShoppingCartSet getShoppingCartRequest(){
-        CommodityInfo commodityInfo = new CommodityInfo(
+    ShoppingCartSetRequest getShoppingCartRequest(){
+        PurchaseInfoRequest purchaseInfo = new PurchaseInfoRequest(
                 5L,
                 1,
                 45f,
                 "T-SHIRT",
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png");
 
-        return RequestShoppingCartSet
+        return ShoppingCartSetRequest
                 .builder()
-                .commodityInfo(commodityInfo)
+                .purchaseInfo(purchaseInfo)
                 .branchId(5L)
                 .shoppingCartId(11L)
                 .build();
@@ -104,7 +104,7 @@ public class ShoppingCartControllerTest {
     public void removeFromShoppingCartSetTest() throws Exception {
         mockMvc.perform(delete("/shoppingCart/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(getShoppingCartRequest().toString()))
+                .content(new RemoveFromCartRequest(11L, 5L,1).toString()))
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.shoppingSet").isArray())
@@ -123,7 +123,7 @@ public class ShoppingCartControllerTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void addToSCSShoppingCartIdValidationTest() throws Exception {
-        RequestShoppingCartSet rscs = getShoppingCartRequest();
+        ShoppingCartSetRequest rscs = getShoppingCartRequest();
         rscs.setShoppingCartId(23L);
         mockMvc.perform(post("/shoppingCart/")
                 .contentType(MediaType.APPLICATION_JSON)

@@ -4,8 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
+import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 
@@ -18,9 +18,9 @@ public interface OrderPurchaseService {
 
     Optional<CustomerOrder> findOrder(Long id, Long customerId);
 
-    CustomerOrder createOrderFor(Long customerId, List<CommodityInfo> commodityInfoList);
+    CustomerOrder createOrderFor(Long customerId, List<PurchaseInfoRequest> purchaseInfoList);
 
-    CustomerOrder confirmPaymentOrder(CustomerOrder order, PaymentProvider paymentProvider, String paymentID);
+    CustomerOrder confirmPaymentOrder(Long orderId, PaymentProvider paymentProvider, String paymentID);
 
     void cancelOrderByCustomer(Long orderId);
 
@@ -28,12 +28,12 @@ public interface OrderPurchaseService {
 
     List<CustomerOrder> findExpiredOrders();
 
+    void removeExpiredOrder(Long id);
+
     CustomerOrder setOrderStatus(Long id, CustomerOrderStatus status);
 
     List<CustomerOrder> findCustomerOrders(Long customerId, CustomerOrderStatus status);
 
-    Page<CustomerOrder> findAllOrdersByPage(Pageable pageable);
-    Page<CustomerOrder> findAllOrdersByPageAndStatus(Pageable pageable, CustomerOrderStatus status);
     Page<CustomerOrder> findAllOrdersByPageAndStatusNot(Pageable pageable, CustomerOrderStatus status);
 
     List<CustomerOrderDto> findOrderListForCustomer(Long customerId);

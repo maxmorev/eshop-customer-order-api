@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.config.ShoppingCartConfig;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
+import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCart;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartId;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartSet;
@@ -64,33 +64,33 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         ShoppingCart cart = shoppingCartSet.getShoppingCart();
 
-        shoppingCartSet.getCommodityInfo().setAmount(shoppingCartSet.getAmount() + amount);
+        shoppingCartSet.getPurchaseInfo().setAmount(shoppingCartSet.getAmount() + amount);
         shoppingCartRepository.save(cart);
         return cart;
     }
 
     @Override
-    public ShoppingCart addBranchToShoppingCart(ShoppingCartId id, CommodityInfo commodityInfo) {
+    public ShoppingCart addBranchToShoppingCart(ShoppingCartId id, PurchaseInfo purchaseInfo) {
         if (id == null) throw new IllegalArgumentException("id can not be null");
         if (id.getBranchId() == null) throw new IllegalArgumentException("branchId can not be null");
-        if (commodityInfo == null) throw new IllegalArgumentException("commodityInfo can not be null");
+        if (purchaseInfo == null) throw new IllegalArgumentException("commodityInfo can not be null");
         if (id.getShoppingCartId() == null) throw new IllegalArgumentException("shoppingCartId can not be null");
-        if (commodityInfo.getAmount() == null) throw new IllegalArgumentException("amount can not be null");
+        if (purchaseInfo.getAmount() == null) throw new IllegalArgumentException("amount can not be null");
         ShoppingCart shoppingCart = this.findShoppingCartById(id.getShoppingCartId())
                 .orElseThrow(() -> new IllegalArgumentException("Cant find shopping cart by id"));
         if (config.getMaxItemsAmount() == shoppingCart.getItemsAmount()
-                || (shoppingCart.getItemsAmount() + commodityInfo.getAmount()) > config.getMaxItemsAmount())
+                || (shoppingCart.getItemsAmount() + purchaseInfo.getAmount()) > config.getMaxItemsAmount())
             return shoppingCart;
         return shoppingCart
                 .getShoppingSet()
                 .stream()
                 .filter(scs -> scs.getId().getBranchId().equals(id.getBranchId()))
                 .findFirst()
-                .map(scs -> addToShoppingCartSet(scs, commodityInfo.getAmount()))
+                .map(scs -> addToShoppingCartSet(scs, purchaseInfo.getAmount()))
                 .orElseGet(() -> {
                     shoppingCart
                             .getShoppingSet()
-                            .add(new ShoppingCartSet(id.getBranchId(), shoppingCart, commodityInfo));
+                            .add(new ShoppingCartSet(id.getBranchId(), shoppingCart, purchaseInfo));
                     return shoppingCartRepository.save(shoppingCart);
                 });
     }
@@ -111,7 +111,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                     if (shoppingCartSet.getAmount() - amount <= 0) {
                         cart.getShoppingSet().remove(shoppingCartSet);
                     } else {
-                        shoppingCartSet.getCommodityInfo().setAmount(shoppingCartSet.getAmount() - amount);
+                        shoppingCartSet.getPurchaseInfo().setAmount(shoppingCartSet.getAmount() - amount);
                     }
                     shoppingCartRepository.save(cart);
                 });
@@ -124,5 +124,62 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return shoppingCartRepository.save(sc);
     }
 
+    @Override
+    public ShoppingCart cleanShoppingCart(Long id) {
+        ShoppingCart sc = shoppingCartRepository
+                .findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Shopping cart not found"));
+        sc.getShoppingSet().clear();
+        return shoppingCartRepository.save(sc);
+    }
 
+    @Override
+    public void removeOrphan(Long id) {
+        shoppingCartRepository.deleteById(id);
+    }
+
+    public ShoppingCart mergeFromTo(ShoppingCart from, ShoppingCart to) {
+        if (from != null && to != null && !Objects.equals(from, to)) {
+            for (ShoppingCartSet set : from.getShoppingSet()) {
+
+                this.addBranchToShoppingCart(
+                        new ShoppingCartId(to.getId(),
+                                set.getId().getBranchId()),
+                        set.getPurchaseInfo());
+            }
+            shoppingCartRepository.delete(from);
+        }
+        return shoppingCartRepository.findById(to.getId()).get();
+    }
+
+    @Override
+    public ShoppingCart mergeCartFromTo(Long from, Long to) {
+        return mergeFromTo(
+                shoppingCartRepository
+                        .findById(from)
+                        .orElseThrow(() -> new IllegalArgumentException("Shopping cart not found")),
+                shoppingCartRepository
+                        .findById(to)
+                        .orElseThrow(() -> new IllegalArgumentException("Shopping cart not found"))
+                );
+    }
+
+    //    @Override
+//    public ShoppingCart mergeCartFromCookieWithCustomer(Long shoppingCartCookie, Long customerId)
+//        if (
+//                Objects.nonNull(customer.getShoppingCart())
+//                        && !Objects.equals(customer.getShoppingCart(), sc)
+//        ) {
+//            //merge cart from cookie to customer cart
+//            log.info("merging cart");
+//            sc = mergeFromTo(sc, customer.getShoppingCart());
+//            log.info("update cookie");
+//
+//        }
+//        if (Objects.isNull(customer.getShoppingCartId())) {
+//            customer.setShoppingCart(sc);
+//            customerRepository.save(customer);
+//        }
+//        return checkAvailabilityByBranches(sc);
+//    }
 }

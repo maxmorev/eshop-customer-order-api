@@ -95,7 +95,7 @@ public class CustomerOrderDto {
 
     public Double getTotalPrice() {
         if (Objects.isNull(totalPrice)) {
-            totalPrice = purchases.stream().mapToDouble(p -> p.getCommodityInfo().getAmount() * p.getCommodityInfo().getPrice()).sum();
+            totalPrice = purchases.stream().mapToDouble(p -> p.getPurchaseInfo().getAmount() * p.getPurchaseInfo().getPrice()).sum();
         }
         return totalPrice;
     }

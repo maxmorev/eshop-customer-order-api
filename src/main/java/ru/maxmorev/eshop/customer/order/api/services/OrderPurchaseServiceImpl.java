@@ -10,16 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.config.OrderConfiguration;
-import ru.maxmorev.eshop.customer.order.api.entities.CommodityInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
 import ru.maxmorev.eshop.customer.order.api.entities.Purchase;
 import ru.maxmorev.eshop.customer.order.api.repository.CustomerOrderRepository;
 import ru.maxmorev.eshop.customer.order.api.repository.ShoppingCartRepository;
+import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -37,13 +36,13 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
 
 
     @Override
-    public CustomerOrder createOrderFor(Long customerId, List<CommodityInfo> commodityInfoList) {
+    public CustomerOrder createOrderFor(Long customerId, List<PurchaseInfoRequest> purchaseInfoList) {
         CustomerOrder customerOrder = new CustomerOrder();
         customerOrder.setCustomerId(customerId);
         customerOrder.setStatus(CustomerOrderStatus.AWAITING_PAYMENT);
         final CustomerOrder newOrder = customerOrderRepository.save(customerOrder);
-        commodityInfoList.forEach(commodityInfo -> {
-            Purchase purchase = new Purchase(commodityInfo.getBranchId(), newOrder, commodityInfo);
+        purchaseInfoList.forEach(commodityInfo -> {
+            Purchase purchase = new Purchase(commodityInfo.getBranchId(), newOrder, commodityInfo.toEntity());
             newOrder.getPurchases().add(purchase);
         });
         return customerOrderRepository.save(newOrder);
@@ -51,7 +50,9 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
 
 
     @Override
-    public CustomerOrder confirmPaymentOrder(CustomerOrder order, PaymentProvider paymentProvider, String paymentID) {
+    public CustomerOrder confirmPaymentOrder(Long orderId, PaymentProvider paymentProvider, String paymentID) {
+        CustomerOrder order = customerOrderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         if (!CustomerOrderStatus.AWAITING_PAYMENT.equals(order.getStatus()))
             throw new IllegalArgumentException("Invalid order status");
         order.setStatus(CustomerOrderStatus.PAYMENT_APPROVED);
@@ -89,23 +90,22 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
     }
 
     @Override
+    public void removeExpiredOrder(Long id) {
+        CustomerOrder order = customerOrderRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        if (!CustomerOrderStatus.AWAITING_PAYMENT.equals(order.getStatus())) {
+            throw new RuntimeException("Illegal Order Status. Can not remove");
+        }
+
+        customerOrderRepository.delete(order);
+    }
+
+    @Override
     public CustomerOrder setOrderStatus(Long id, CustomerOrderStatus status) {
         CustomerOrder order = findOrder(id).orElseThrow(() -> new IllegalArgumentException("Invalid order id"));
         order.setStatus(status);
         return customerOrderRepository.save(order);
-    }
-
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CustomerOrder> findAllOrdersByPage(Pageable pageable) {
-        return customerOrderRepository.findAll(pageable);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CustomerOrder> findAllOrdersByPageAndStatus(Pageable pageable, CustomerOrderStatus status) {
-        return customerOrderRepository.findByStatus(pageable, status);
     }
 
     @Override

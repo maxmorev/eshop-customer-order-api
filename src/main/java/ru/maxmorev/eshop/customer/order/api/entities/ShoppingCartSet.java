@@ -11,13 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -37,21 +34,21 @@ public class ShoppingCartSet {
     private ShoppingCartId id;
 
     @Embedded
-    private CommodityInfo commodityInfo;
+    private PurchaseInfo purchaseInfo;
 
     @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "shopping_cart_id", insertable = false, updatable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_SHOPPING_CART_SET_CART"))
     private ShoppingCart shoppingCart;
 
-    public ShoppingCartSet(Long branchId, ShoppingCart shoppingCart, CommodityInfo commodityInfo) {
+    public ShoppingCartSet(Long branchId, ShoppingCart shoppingCart, PurchaseInfo purchaseInfo) {
         this.id = new ShoppingCartId(branchId, shoppingCart.getId());
         this.shoppingCart = shoppingCart;
-        this.commodityInfo = commodityInfo;
+        this.purchaseInfo = purchaseInfo;
     }
 
     public int getAmount() {
-        return this.getCommodityInfo().getAmount();
+        return this.getPurchaseInfo().getAmount();
     }
 
     @Override
@@ -70,11 +67,11 @@ public class ShoppingCartSet {
         if (!(o instanceof ShoppingCartSet)) return false;
         ShoppingCartSet that = (ShoppingCartSet) o;
         return getId().equals(that.getId()) &&
-                getCommodityInfo().equals(that.getCommodityInfo());
+                getPurchaseInfo().equals(that.getPurchaseInfo());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getCommodityInfo());
+        return Objects.hash(getId(), getPurchaseInfo());
     }
 }
