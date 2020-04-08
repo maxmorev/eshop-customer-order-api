@@ -11,7 +11,7 @@
         </encoder>
     </appender>
 
-    <logger name="ru.maxmorev.restful.eshop" level="debug"/>
+    <logger name="ru.maxmorev.eshop.customer.order.api" level="debug"/>
 
     <logger name="org.springframework" level="info"/>
 

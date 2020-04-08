@@ -7,7 +7,7 @@ spring:
   profiles:
     active: test
   messages:
-    basename: i18n/messages # for multiple properties just use comma separated values
+    basename: i18n/messages
     encoding: UTF-8
   jpa:
     show-sql: true
@@ -26,11 +26,12 @@ spring:
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
+
+#APP PROPS
+server:
+  port: 8080
+
 order:
   expiredMinutes: 15
 cart:
   maxItemsAmount: 3
-server:
-  port: 8080
-
-

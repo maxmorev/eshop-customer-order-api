@@ -9,6 +9,7 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -28,4 +29,19 @@ public class PurchaseInfo {
     @Column(name = "commodity_image_uri", nullable = false)
     private String commodityImageUri;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PurchaseInfo)) return false;
+        PurchaseInfo that = (PurchaseInfo) o;
+        return getAmount().equals(that.getAmount()) &&
+                getPrice().equals(that.getPrice()) &&
+                getCommodityName().equals(that.getCommodityName()) &&
+                getCommodityImageUri().equals(that.getCommodityImageUri());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAmount(), getPrice(), getCommodityName(), getCommodityImageUri());
+    }
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.jdbc.SqlGroup;
@@ -25,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @DisplayName("Integration controller (ShoppingCartController) test")
@@ -87,7 +85,49 @@ public class ShoppingCartControllerTest {
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.shoppingSet").isArray())
+                .andExpect(jsonPath("$.shoppingSet[0].purchaseInfo.amount", is(3)))
+                .andExpect(jsonPath("$.id", is(11)));
+    }
+
+    @Test
+    @DisplayName("Should increment amount of branch in shopping cart by remove method")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void addToShoppingCartSetByRemoveTest() throws Exception {
+        mockMvc.perform(delete("/shoppingCart/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new RemoveFromCartRequest(11L, 5L,-1).toString()))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.shoppingSet").isArray())
                 .andExpect(jsonPath("$.shoppingSet[0].amount", is(3)))
+                .andExpect(jsonPath("$.id", is(11)));
+    }
+
+    @Test
+    @DisplayName("Should expect no operation with cart")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void addToShoppingCartSetByRemoveNoBranchIdTest() throws Exception {
+        mockMvc.perform(delete("/shoppingCart/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new RemoveFromCartRequest(11L, 25L,-1).toString()))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.shoppingSet").isArray())
+                .andExpect(jsonPath("$.shoppingSet[0].amount", is(2)))
                 .andExpect(jsonPath("$.id", is(11)));
     }
 
@@ -113,6 +153,27 @@ public class ShoppingCartControllerTest {
     }
 
     @Test
+    @DisplayName("Should expect error because cardId is invalid")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void removeFromShoppingCartSetErrorTest() throws Exception {
+        mockMvc.perform(delete("/shoppingCart/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new RemoveFromCartRequest(111L, 5L,1).toString()))
+                .andDo(print())
+                .andExpect(status().is(500))
+                .andExpect(jsonPath("$.message", is("Validation error")))
+                //.andExpect(jsonPath("$.errors[0].message", is("Wrong Shopping Cart id")))
+                .andExpect(jsonPath("$.errors[0].field", is("shoppingCartId")));
+    }
+
+    @Test
     @DisplayName("Should expect validation error in shopping cart id")
     @SqlGroup({
             @Sql(value = "classpath:db/purchase/test-data.sql",
@@ -133,30 +194,6 @@ public class ShoppingCartControllerTest {
                 .andExpect(jsonPath("$.message", is("Validation error")))
                 .andExpect(jsonPath("$.errors[0].field", is("shoppingCartId")));
     }
-
-//    @Test
-//    @DisplayName("Should expect validation error in branch id")
-//    @SqlGroup({
-//            @Sql(value = "classpath:db/purchase/test-data.sql",
-//                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
-//                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-//            @Sql(value = "classpath:db/purchase/clean-up.sql",
-//                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
-//                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
-//    })
-//    public void addToSCSBranchIdValidationTest() throws Exception {
-//        RequestShoppingCartSet rscs = getShoppingCartRequest();
-//        rscs.setBranchId(50L);
-//
-//        mockMvc.perform(post("/shoppingCart/")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(rscs.toString()))
-//                .andDo(print())
-//                .andExpect(status().is(500))
-//                .andExpect(jsonPath("$.message", is("Validation error")))
-//                .andExpect(jsonPath("$.errors[0].field", is("branchId")));
-//    }
-
 
 
 }

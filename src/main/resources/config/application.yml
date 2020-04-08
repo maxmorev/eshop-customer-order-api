@@ -4,10 +4,10 @@ spring:
       enabled: false
   application:
     name: eshop-customer-order-api
-    profiles:
+  profiles:
       active: dev
-    messages:
-      basename: i18n/messages # for multiple properties just use comma separated values
+  messages:
+      basename: "i18n/messages"
       encoding: UTF-8
   jpa:
     ddl-auto: update

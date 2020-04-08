@@ -174,19 +174,15 @@ public class ShoppingCartServiceTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void addBranchToShoppingCartTest() {
-        shoppingCartService
-                .findShoppingCartById(11L).ifPresent(shoppingCart -> {
-            shoppingCart.getShoppingSet().forEach(shoppingCartSet -> {
-                assertEquals(2, shoppingCartSet.getAmount());
-                ShoppingCart res = shoppingCartService
-                        .addBranchToShoppingCart(
-                                new ShoppingCartId(5L, 11L),
-                                purchaseInfo.toEntity());
-                em.flush();
-                assertEquals(3, res.getItemsAmount());
-
-            });
-        });
+       var sc = shoppingCartService.findShoppingCartById(11L).get();
+        assertEquals(2, sc.getItemsAmount());
+       var res = shoppingCartService
+                .addBranchToShoppingCart(
+                        new ShoppingCartId(5L, 11L),
+                        purchaseInfo.toEntity());
+       em.flush();
+       sc = shoppingCartService.findShoppingCartById(11L).get();
+       assertEquals(3, sc.getItemsAmount());
     }
 
     @Test

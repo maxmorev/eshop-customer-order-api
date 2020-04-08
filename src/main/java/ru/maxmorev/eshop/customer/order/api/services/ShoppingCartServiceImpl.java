@@ -3,6 +3,7 @@ package ru.maxmorev.eshop.customer.order.api.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.config.ShoppingCartConfig;
 import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
@@ -10,6 +11,7 @@ import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCart;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartId;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartSet;
 import ru.maxmorev.eshop.customer.order.api.repository.ShoppingCartRepository;
+import ru.maxmorev.eshop.customer.order.api.repository.ShoppingCartSetRepository;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -22,6 +24,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     private final ShoppingCartConfig config;
     private final ShoppingCartRepository shoppingCartRepository;
+    private final ShoppingCartSetRepository shoppingCartSetRepository;
     //private final CommodityService commodityService;
     //private final CustomerRepository customerRepository;
 
@@ -57,16 +60,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     //@Override
     protected ShoppingCart addToShoppingCartSet(ShoppingCartSet shoppingCartSet, Integer amount) {
-
         isValidShoppingCartSet(shoppingCartSet);
-        log.info("======================================");
-        log.info("addToShoppingCartSet : " + shoppingCartSet);
-
-        ShoppingCart cart = shoppingCartSet.getShoppingCart();
-
-        shoppingCartSet.getPurchaseInfo().setAmount(shoppingCartSet.getAmount() + amount);
-        shoppingCartRepository.save(cart);
-        return cart;
+        shoppingCartSet.getPurchaseInfo().setAmount(shoppingCartSet.getPurchaseInfo().getAmount() + amount);
+        var set = shoppingCartSetRepository.save(shoppingCartSet);
+        return set.getShoppingCart();
     }
 
     @Override
@@ -78,21 +75,20 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (purchaseInfo.getAmount() == null) throw new IllegalArgumentException("amount can not be null");
         ShoppingCart shoppingCart = this.findShoppingCartById(id.getShoppingCartId())
                 .orElseThrow(() -> new IllegalArgumentException("Cant find shopping cart by id"));
+        log.info("shoppingCart.getItemsAmount() {} purchaseInfo.getAmount() {}", shoppingCart.getItemsAmount(), purchaseInfo.getAmount());
         if (config.getMaxItemsAmount() == shoppingCart.getItemsAmount()
                 || (shoppingCart.getItemsAmount() + purchaseInfo.getAmount()) > config.getMaxItemsAmount())
             return shoppingCart;
-        return shoppingCart
-                .getShoppingSet()
-                .stream()
-                .filter(scs -> scs.getId().getBranchId().equals(id.getBranchId()))
-                .findFirst()
-                .map(scs -> addToShoppingCartSet(scs, purchaseInfo.getAmount()))
-                .orElseGet(() -> {
-                    shoppingCart
-                            .getShoppingSet()
-                            .add(new ShoppingCartSet(id.getBranchId(), shoppingCart, purchaseInfo));
-                    return shoppingCartRepository.save(shoppingCart);
-                });
+        var scs = shoppingCartSetRepository.findById(id);
+        if (scs.isPresent()) {
+            return addToShoppingCartSet(scs.get(), purchaseInfo.getAmount());
+        } else {
+            shoppingCart
+                    .getShoppingSet()
+                    .add(new ShoppingCartSet(id.getBranchId(), shoppingCart, purchaseInfo));
+            return shoppingCartRepository.save(shoppingCart);
+        }
+
     }
 
     @Override
@@ -101,21 +97,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (id.getBranchId() == null) throw new IllegalArgumentException("branchId can not be null");
         if (amount == null) throw new IllegalArgumentException("amount can not be null");
         if (id.getShoppingCartId() == null) throw new IllegalArgumentException("shoppingCartId can not be null");
-
-        ShoppingCart cart = findShoppingCartById(id.getShoppingCartId()).orElseThrow(() -> new IllegalArgumentException("Shopping Cart not found"));
-        cart.getShoppingSet()
-                .stream()
-                .filter(scs -> scs.getId().getBranchId().equals(id.getBranchId()))
-                .findFirst()
-                .ifPresent(shoppingCartSet -> {
-                    if (shoppingCartSet.getAmount() - amount <= 0) {
-                        cart.getShoppingSet().remove(shoppingCartSet);
-                    } else {
-                        shoppingCartSet.getPurchaseInfo().setAmount(shoppingCartSet.getAmount() - amount);
-                    }
-                    shoppingCartRepository.save(cart);
-                });
-        return cart;
+        var scs = shoppingCartSetRepository.findById(id);
+        if(scs.isPresent())
+            if (scs.get().getAmount() - amount <= 0) {
+                shoppingCartSetRepository.delete(scs.get());
+            } else {
+                 addToShoppingCartSet(scs.get(), -amount);
+            }
+        return shoppingCartRepository.findById(id.getShoppingCartId()).orElseThrow(()->new IllegalArgumentException("Shopping Cart not found"));
     }
 
 
@@ -161,7 +150,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 shoppingCartRepository
                         .findById(to)
                         .orElseThrow(() -> new IllegalArgumentException("Shopping cart not found"))
-                );
+        );
     }
 
     //    @Override

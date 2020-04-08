@@ -9,12 +9,19 @@ import java.util.Optional;
 public interface ShoppingCartService {
 
     ShoppingCart createEmptyShoppingCart();
+
     Optional<ShoppingCart> findShoppingCartById(Long id);
+
     ShoppingCart removeBranchFromShoppingCart(ShoppingCartId id, Integer amount);
+
     ShoppingCart update(ShoppingCart sc);
+
     ShoppingCart addBranchToShoppingCart(ShoppingCartId id, PurchaseInfo purchaseInfo);
+
     ShoppingCart cleanShoppingCart(Long id);
+
     void removeOrphan(Long id);
+
     ShoppingCart mergeCartFromTo(Long from, Long to);
 
 }
