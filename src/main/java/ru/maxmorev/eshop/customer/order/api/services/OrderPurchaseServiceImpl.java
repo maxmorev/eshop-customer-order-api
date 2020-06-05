@@ -15,7 +15,6 @@ import ru.maxmorev.eshop.customer.order.api.entities.Purchase;
 import ru.maxmorev.eshop.customer.order.api.repository.CustomerOrderRepository;
 import ru.maxmorev.eshop.customer.order.api.repository.ShoppingCartRepository;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
-import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 
 import java.util.Calendar;
@@ -23,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service("orderPurchaseService")
 @Transactional
@@ -121,10 +119,10 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
     }
 
     @Override
-    public void cancelOrderByCustomer(Long orderId) {
+    public void cancelOrderByCustomer(Long customerId, Long orderId) {
         //move elements back to branch
         CustomerOrder order = customerOrderRepository
-                .findById(orderId)
+                .findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         //set order status to canceled
@@ -141,14 +139,11 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
     }
 
     @Override
-    public List<CustomerOrderDto> findOrderListForCustomer(Long customerId) {
+    public List<CustomerOrder> findOrderListForCustomer(Long customerId) {
         return customerOrderRepository
                 .findByCustomerIdAndStatusNotOrderByDateOfCreationDesc(
                         customerId,
-                        CustomerOrderStatus.AWAITING_PAYMENT)
-                .stream()
-                .map(CustomerOrderDto::forCusrtomer)
-                .collect(Collectors.toList());
+                        CustomerOrderStatus.AWAITING_PAYMENT);
     }
 
     private PageRequest getPageRequeset(Integer page,

@@ -27,7 +27,7 @@ public class ShoppingCartController {
     private ShoppingCartService shoppingCartService;
     private MessageSource messageSource;
 
-    @RequestMapping(path = "/shoppingCart/create/", method = RequestMethod.GET)
+    @RequestMapping(path = "/shoppingCart/new/", method = RequestMethod.POST)
     @ResponseBody
     public ShoppingCart createEmptySoppingCart() {
         return shoppingCartService.createEmptyShoppingCart();

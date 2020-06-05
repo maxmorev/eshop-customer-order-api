@@ -167,9 +167,9 @@ public class ShoppingCartControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new RemoveFromCartRequest(111L, 5L,1).toString()))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Validation error")))
-                //.andExpect(jsonPath("$.errors[0].message", is("Wrong Shopping Cart id")))
+                .andExpect(jsonPath("$.errors[0].message", is("Wrong Shopping Cart id")))
                 .andExpect(jsonPath("$.errors[0].field", is("shoppingCartId")));
     }
 
@@ -190,9 +190,10 @@ public class ShoppingCartControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(rscs.toString()))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Validation error")))
-                .andExpect(jsonPath("$.errors[0].field", is("shoppingCartId")));
+                .andExpect(jsonPath("$.errors[0].field", is("shoppingCartId")))
+                .andExpect(jsonPath("$.errors[0].message", is("Wrong Shopping Cart id")));
     }
 
 

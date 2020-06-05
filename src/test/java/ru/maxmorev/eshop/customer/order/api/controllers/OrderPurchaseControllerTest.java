@@ -20,8 +20,8 @@ import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,7 +59,7 @@ public class OrderPurchaseControllerTest {
                 .orderId(16L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
-        mockMvc.perform(put("/order/confirm/")
+        mockMvc.perform(put("/order/confirmation/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
@@ -88,12 +88,12 @@ public class OrderPurchaseControllerTest {
                 .orderId(166L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
-        mockMvc.perform(put("/order/confirm/")
+        mockMvc.perform(put("/order/confirmation/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
                 .andExpect(status().is(500))
-                .andExpect(jsonPath("$.message", is("Validation error")));
+                .andExpect(jsonPath("$.message", is("Order not found")));
 
     }
 
@@ -114,7 +114,7 @@ public class OrderPurchaseControllerTest {
                 .orderId(25L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
-        mockMvc.perform(put("/order/confirm/")
+        mockMvc.perform(put("/order/confirmation/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
@@ -259,7 +259,7 @@ public class OrderPurchaseControllerTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void removeExpiredOrderTest() throws Exception {
-        mockMvc.perform(post("/order/remove/expired/" + AWAITING_ORDER_ID))
+        mockMvc.perform(delete("/order/expired/" + AWAITING_ORDER_ID))
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.message", is("Success")));

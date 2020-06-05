@@ -20,14 +20,7 @@ import javax.validation.constraints.NotNull;
 public class OrderIdRequest {
     @NotNull
     private Long orderId;
+    @NotNull
+    private Long customerId;
 
-    @Override
-    public String toString() {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            return e.getMessage();
-        }
-    }
 }

@@ -58,7 +58,7 @@ public class GlobalDefaultExceptionHandler {
      * @param ex MethodArgumentNotValidException
      * @return @see ru.maxmorev.restful.eshop.rest.response.Message
      */
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     public Message validationException(HttpServletRequest req, MethodArgumentNotValidException ex) {
@@ -66,8 +66,7 @@ public class GlobalDefaultExceptionHandler {
         List<Message.ErrorDetail> fieldsErrorDetails = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> new Message.ErrorDetail(e.getField(), e.getDefaultMessage()))
                 .collect(Collectors.toList());
-        Message responseMessage = new Message(Message.ERROR, req.getRequestURL().toString(), "Validation error", fieldsErrorDetails);
-        return responseMessage;
+        return new Message(Message.ERROR, req.getRequestURL().toString(), "Validation error", fieldsErrorDetails);
     }
 
 

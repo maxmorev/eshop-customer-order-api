@@ -1,6 +1,7 @@
 package ru.maxmorev.eshop.customer.order.api.entities;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -8,19 +9,16 @@ import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
-//Readonly
-@Embeddable
 @Getter
 @Setter
+@Embeddable
+@NoArgsConstructor
 public class PurchaseId implements Serializable {
 
     @Column(name = "branch_id")
     Long branchId;
     @Column(name = "order_id")
     Long orderId;
-
-    protected PurchaseId() {
-    }
 
     public PurchaseId(Long branchId, Long orderId) {
         if (branchId == null) throw new IllegalArgumentException("branchId cannot be null");
@@ -50,5 +48,6 @@ public class PurchaseId implements Serializable {
     public int hashCode() {
         return Objects.hash(getBranchId(), getOrderId());
     }
+
 }
 

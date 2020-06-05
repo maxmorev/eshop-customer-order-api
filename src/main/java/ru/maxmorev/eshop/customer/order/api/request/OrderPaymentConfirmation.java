@@ -20,7 +20,9 @@ import javax.validation.constraints.NotNull;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OrderPaymentConfirmation extends OrderIdRequest {
+public class OrderPaymentConfirmation {
+    @NotNull
+    Long orderId;
     @NotBlank
     @NotNull
     private String paymentId;
@@ -36,7 +38,7 @@ public class OrderPaymentConfirmation extends OrderIdRequest {
 
     @Builder
     public OrderPaymentConfirmation(@NotNull Long orderId, @NotBlank @NotNull String paymentId, @NotBlank @NotNull String paymentProvider) {
-        super(orderId);
+        this.orderId = orderId;
         this.paymentId = paymentId;
         this.paymentProvider = paymentProvider;
     }

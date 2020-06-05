@@ -17,10 +17,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
-import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
-import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -42,6 +40,7 @@ public class OrderPurchaseServiceTest {
 
     private static final Long APPROVED_ORDER_ID = 25L;
     private static final Long AWAITING_PAYMENT_ORDER_ID = 16L;
+    private static final Long CUSTOMER_ID = 10L;
     @Autowired
     private OrderPurchaseService orderPurchaseService;
     @PersistenceContext
@@ -200,7 +199,7 @@ public class OrderPurchaseServiceTest {
                     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
     })
     public void cancelOrderAndDeleteTest() {
-        orderPurchaseService.cancelOrderByCustomer(AWAITING_PAYMENT_ORDER_ID);
+        orderPurchaseService.cancelOrderByCustomer(CUSTOMER_ID, AWAITING_PAYMENT_ORDER_ID);
         em.flush();
         Optional<CustomerOrder> order = orderPurchaseService.findOrder(AWAITING_PAYMENT_ORDER_ID);
         assertTrue(order.isEmpty());
@@ -219,7 +218,7 @@ public class OrderPurchaseServiceTest {
     })
     public void cancelOrderExceptionTest() {
 
-        orderPurchaseService.cancelOrderByCustomer(APPROVED_ORDER_ID);
+        orderPurchaseService.cancelOrderByCustomer(CUSTOMER_ID, APPROVED_ORDER_ID);
 
         orderPurchaseService.findOrder(APPROVED_ORDER_ID).ifPresent(o -> {
             assertEquals(CustomerOrderStatus.CANCELED_BY_CUSTOMER, o.getStatus());
@@ -240,12 +239,9 @@ public class OrderPurchaseServiceTest {
     })
     public void getCorrectOrderListDtoForCustomerWithActionTest() {
 
-        List<CustomerOrderDto> orders = orderPurchaseService.findOrderListForCustomer(10L);
+        var orders = orderPurchaseService.findOrderListForCustomer(10L);
         assertEquals(1, orders.size());
         assertEquals(25L, orders.get(0).getId().longValue());
-        assertEquals(1, orders.get(0).getActions().size());
-        assertEquals(CustomerOrderStatus.CANCELED_BY_CUSTOMER.name(),
-                orders.get(0).getActions().get(0).getAction());
 
     }
 
@@ -264,12 +260,6 @@ public class OrderPurchaseServiceTest {
 
         var page = orderPurchaseService.getOrdersForAdmin(null, null, null, null);
         assertEquals(1, page.getTotalRecords());
-        assertEquals(CustomerOrderStatus.PREPARING_TO_SHIP.name(),
-                page.getOrderData()
-                        .get(0)
-                        .getActions()
-                        .get(0)
-                        .getAction());
 
     }
 

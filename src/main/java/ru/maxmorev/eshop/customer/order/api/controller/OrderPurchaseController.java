@@ -16,7 +16,6 @@ import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
 import ru.maxmorev.eshop.customer.order.api.request.CreateOrderRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderIdRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
-import ru.maxmorev.eshop.customer.order.api.response.CustomerOrderDto;
 import ru.maxmorev.eshop.customer.order.api.response.Message;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 import ru.maxmorev.eshop.customer.order.api.services.OrderPurchaseService;
@@ -33,7 +32,7 @@ public class OrderPurchaseController {
     private final MessageSource messageSource;
     private final OrderPurchaseService orderPurchaseService;
 
-    @RequestMapping(path = "/order/confirm/", method = RequestMethod.PUT)
+    @RequestMapping(path = "/order/confirmation/", method = RequestMethod.PUT)
     @ResponseBody
     public CustomerOrder confirmOrder(@RequestBody
                                       @Valid OrderPaymentConfirmation orderPaymentConfirmation,
@@ -44,7 +43,7 @@ public class OrderPurchaseController {
         );
     }
 
-    @RequestMapping(path = "/order/create/", method = RequestMethod.POST)
+    @RequestMapping(path = "/order/", method = RequestMethod.POST)
     @ResponseBody
     public CustomerOrder createOrder(@RequestBody
                                      @Valid CreateOrderRequest createOrderRequest,
@@ -54,7 +53,7 @@ public class OrderPurchaseController {
                         createOrderRequest.getPurchases());
     }
 
-    @RequestMapping(path = "/order/remove/expired/{id}", method = RequestMethod.POST)
+    @RequestMapping(path = "/order/expired/{id}", method = RequestMethod.DELETE)
     @ResponseBody
     public Message removeExpiredOrder(@PathVariable(name = "id") Long id, Locale locale) {
         orderPurchaseService.removeExpiredOrder(id);
@@ -75,7 +74,7 @@ public class OrderPurchaseController {
 
     @RequestMapping(path = "/order/list/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
-    public List<CustomerOrderDto> customerOrderList(@PathVariable(name = "customerId", required = true) Long customerId, Locale locale) {
+    public List<CustomerOrder> customerOrderList(@PathVariable(name = "customerId", required = true) Long customerId, Locale locale) {
         //TODO check auth customer.id with id in PathVariable
         return orderPurchaseService.findOrderListForCustomer(customerId);
     }
@@ -90,13 +89,13 @@ public class OrderPurchaseController {
                 .findCustomerOrders(customerId, CustomerOrderStatus.valueOf(statusName));
     }
 
-    @RequestMapping(path = "/order/cancel/", method = RequestMethod.PUT)
+    @RequestMapping(path = "/order/by/customer/cancellation/", method = RequestMethod.PUT)
     @ResponseBody
     public Message customerOrderCancel(
             @Valid @RequestBody OrderIdRequest order,
             Locale locale) {
         //TODO check auth customer.id with id in PathVariable
-        orderPurchaseService.cancelOrderByCustomer(order.getOrderId());
+        orderPurchaseService.cancelOrderByCustomer(order.getCustomerId(), order.getOrderId());
         return new Message(Message.SUCCES, messageSource.getMessage("message_success", new Object[]{}, locale));
     }
 

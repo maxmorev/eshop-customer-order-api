@@ -15,7 +15,7 @@ public class OrderGrid {
     private int totalPages;
     private int currentPage;
     private long totalRecords;
-    private List<CustomerOrderDto> orderData;
+    private List<CustomerOrder> orderData;
 
 
     public OrderGrid(Page<CustomerOrder> customerOrderPage) {
@@ -24,7 +24,6 @@ public class OrderGrid {
         this.setTotalRecords(customerOrderPage.getTotalElements());
         this.setOrderData(customerOrderPage
                 .stream()
-                .map(CustomerOrderDto::of)
                 .collect(Collectors.toList()));
     }
 }
