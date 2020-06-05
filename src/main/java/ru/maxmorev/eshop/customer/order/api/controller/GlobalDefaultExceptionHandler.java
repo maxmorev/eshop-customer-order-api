@@ -28,7 +28,7 @@ public class GlobalDefaultExceptionHandler {
      * @param ex
      * @return
      */
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public Message handleBadRequest(HttpServletRequest req, Exception ex) {
@@ -70,7 +70,7 @@ public class GlobalDefaultExceptionHandler {
     }
 
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
     @ResponseBody
     public Message handleIllegalArgumentException(HttpServletRequest req, Exception ex) {
