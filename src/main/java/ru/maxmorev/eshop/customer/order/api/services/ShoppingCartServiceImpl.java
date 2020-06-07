@@ -65,7 +65,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public ShoppingCart addBranchToShoppingCart(ShoppingCartId id, PurchaseInfo purchaseInfo) {
-        log.info("---- addBranchToShoppingCart");
         if (id == null) throw new IllegalArgumentException("id can not be null");
         if (id.getBranchId() == null) throw new IllegalArgumentException("branchId can not be null");
         if (purchaseInfo == null) throw new IllegalArgumentException("commodityInfo can not be null");
@@ -73,7 +72,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (purchaseInfo.getAmount() == null) throw new IllegalArgumentException("amount can not be null");
         ShoppingCart shoppingCart = this.findShoppingCartById(id.getShoppingCartId())
                 .orElseThrow(() -> new IllegalArgumentException("Cant find shopping cart by id"));
-        log.info("shoppingCart.getItemsAmount() {} purchaseInfo.getAmount() {}", shoppingCart.getItemsAmount(), purchaseInfo.getAmount());
         if (config.getMaxItemsAmount() == shoppingCart.getItemsAmount()
                 || (shoppingCart.getItemsAmount() + purchaseInfo.getAmount()) > config.getMaxItemsAmount())
             return shoppingCart;
@@ -126,7 +124,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     public ShoppingCart mergeFromTo(ShoppingCart from, ShoppingCart to) {
-        log.info("mergeFromTo {}, {}", from, to);
         if (from != null && to != null && !Objects.equals(from, to)) {
             for (ShoppingCartSet set : from.getShoppingSet()) {
 
@@ -150,23 +147,4 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                         .orElseThrow(() -> new IllegalArgumentException("Shopping cart not found"))
         );
     }
-
-    //    @Override
-//    public ShoppingCart mergeCartFromCookieWithCustomer(Long shoppingCartCookie, Long customerId)
-//        if (
-//                Objects.nonNull(customer.getShoppingCart())
-//                        && !Objects.equals(customer.getShoppingCart(), sc)
-//        ) {
-//            //merge cart from cookie to customer cart
-//            log.info("merging cart");
-//            sc = mergeFromTo(sc, customer.getShoppingCart());
-//            log.info("update cookie");
-//
-//        }
-//        if (Objects.isNull(customer.getShoppingCartId())) {
-//            customer.setShoppingCart(sc);
-//            customerRepository.save(customer);
-//        }
-//        return checkAvailabilityByBranches(sc);
-//    }
 }
