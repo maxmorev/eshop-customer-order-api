@@ -13,7 +13,6 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.config.ShoppingCartConfig;
-import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCart;
 import ru.maxmorev.eshop.customer.order.api.entities.ShoppingCartId;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
@@ -253,6 +252,32 @@ public class ShoppingCartServiceTest {
                 assertEquals(2, res.getItemsAmount());
             });
         });
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("should merge cart from to by adding to shopping cart set")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void mergeCartFromToTest() {
+        ShoppingCart to = shoppingCartService.findShoppingCartById(11L).get();
+        assertEquals(1, to.getShoppingSet().size());
+        assertEquals(2, to.getItemsAmount());
+        ShoppingCart from = shoppingCartService.findShoppingCartById(900L).get();
+        assertEquals(1, from.getShoppingSet().size());
+        assertEquals(1,from.getItemsAmount());
+        ShoppingCart toMerged = shoppingCartService.mergeCartFromTo(900L, 11L);
+        assertEquals(11L, toMerged.getId());
+        assertEquals(3, toMerged.getItemsAmount());
+        assertEquals(2, toMerged.getShoppingSet().size());
+        assertTrue(toMerged.getShoppingSet().stream().anyMatch(sc->sc.getPurchaseInfo().getCommodityName().equals("T-SHIRT 01")));
+        assertTrue(toMerged.getShoppingSet().stream().anyMatch(sc->sc.getPurchaseInfo().getCommodityName().equals("T-SHIRT 02")));
     }
 
 

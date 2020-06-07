@@ -1,0 +1,33 @@
+{
+  "id": 11,
+  "version": 1,
+  "shoppingSet": [
+    {
+      "id": {
+        "branchId": 5,
+        "shoppingCartId": 11
+      },
+      "purchaseInfo": {
+        "amount": 2,
+        "price": 45.0,
+        "commodityName": "T-SHIRT 01",
+        "commodityImageUri": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png"
+      },
+      "amount": 2
+    },
+    {
+      "id": {
+        "branchId": 6,
+        "shoppingCartId": 11
+      },
+      "purchaseInfo": {
+        "amount": 1,
+        "price": 50.0,
+        "commodityName": "T-SHIRT 02",
+        "commodityImageUri": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png"
+      },
+      "amount": 1
+    }
+  ],
+  "itemsAmount": 3
+}

@@ -18,6 +18,32 @@ values(
 );
 
 insert into shopping_cart (id, version) values (13, 1);
+insert into shopping_cart (id, version) values (900, 1);
+insert into shopping_cart_set (
+branch_id,
+shopping_cart_id,
+amount,
+price,
+commodity_name,
+commodity_image_uri
+)
+values(
+6,
+900,
+1,
+50.0,
+'T-SHIRT 02',
+'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png'
+);
+--
+---- shopping cart without customer, founded by id in cookie
+--insert into shopping_cart (id, version) values (17, 1);
+--insert into shopping_cart_set (id, amount, branch_id, shopping_cart_id) values(18, 1, 5, 17);
+--
+---- shopping cart with empty branch
+--insert into shopping_cart (id, version) values (22, 1);
+--insert into shopping_cart_set (id, amount, branch_id, shopping_cart_id) values(23, 2, 20, 22);
+--
 
 --insert into shopping_cart_set (id, amount, branch_id, shopping_cart_id) values(14, 6, 5, 13);
 --
@@ -52,15 +78,6 @@ commodity_image_uri
 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/SSL_Deep_Inspection_Explanation.svg/1050px-SSL_Deep_Inspection_Explanation.svg.png'
 );
 
---
----- shopping cart without customer, founded by id in cookie
---insert into shopping_cart (id, version) values (17, 1);
---insert into shopping_cart_set (id, amount, branch_id, shopping_cart_id) values(18, 1, 5, 17);
---
----- shopping cart with empty branch
---insert into shopping_cart (id, version) values (22, 1);
---insert into shopping_cart_set (id, amount, branch_id, shopping_cart_id) values(23, 2, 20, 22);
---
 ---- payment approved
 insert into customer_order (
         id,

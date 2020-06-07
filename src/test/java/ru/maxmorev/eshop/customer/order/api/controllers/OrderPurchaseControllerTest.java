@@ -92,7 +92,7 @@ public class OrderPurchaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Order not found")));
 
     }
@@ -118,7 +118,7 @@ public class OrderPurchaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Invalid order status")));
 
     }
@@ -174,7 +174,7 @@ public class OrderPurchaseControllerTest {
     public void customerOrderErrorTest() throws Exception {
         mockMvc.perform(get("/order/25/customer/15/"))
                 .andDo(print())
-                .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.status", is("error")))
                 .andExpect(jsonPath("$.message", is("No such order")));
     }
@@ -227,7 +227,7 @@ public class OrderPurchaseControllerTest {
 
         mockMvc.perform(put("/order/" + 2929 + "/PREPARING_TO_SHIP/"))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Invalid order id")));
     }
 
@@ -244,7 +244,7 @@ public class OrderPurchaseControllerTest {
     public void prepareToShipInvalidStatusTest() throws Exception {
         mockMvc.perform(put("/order/" + APPROVED_ORDER_ID + "/PREPARING_TO_ROCK"))
                 .andDo(print())
-                .andExpect(status().is(500))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Invalid status")));
     }
 

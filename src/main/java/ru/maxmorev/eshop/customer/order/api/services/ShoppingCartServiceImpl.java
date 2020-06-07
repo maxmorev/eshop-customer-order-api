@@ -3,7 +3,6 @@ package ru.maxmorev.eshop.customer.order.api.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.config.ShoppingCartConfig;
 import ru.maxmorev.eshop.customer.order.api.entities.PurchaseInfo;
@@ -25,8 +24,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartConfig config;
     private final ShoppingCartRepository shoppingCartRepository;
     private final ShoppingCartSetRepository shoppingCartSetRepository;
-    //private final CommodityService commodityService;
-    //private final CustomerRepository customerRepository;
 
     @Override
     public ShoppingCart createEmptyShoppingCart() {
@@ -68,6 +65,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public ShoppingCart addBranchToShoppingCart(ShoppingCartId id, PurchaseInfo purchaseInfo) {
+        log.info("---- addBranchToShoppingCart");
         if (id == null) throw new IllegalArgumentException("id can not be null");
         if (id.getBranchId() == null) throw new IllegalArgumentException("branchId can not be null");
         if (purchaseInfo == null) throw new IllegalArgumentException("commodityInfo can not be null");
@@ -128,12 +126,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     public ShoppingCart mergeFromTo(ShoppingCart from, ShoppingCart to) {
+        log.info("mergeFromTo {}, {}", from, to);
         if (from != null && to != null && !Objects.equals(from, to)) {
             for (ShoppingCartSet set : from.getShoppingSet()) {
 
                 this.addBranchToShoppingCart(
-                        new ShoppingCartId(to.getId(),
-                                set.getId().getBranchId()),
+                        new ShoppingCartId(set.getId().getBranchId(), to.getId()),
                         set.getPurchaseInfo());
             }
             shoppingCartRepository.delete(from);

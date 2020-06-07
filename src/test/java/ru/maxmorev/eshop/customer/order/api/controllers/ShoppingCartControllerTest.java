@@ -196,5 +196,25 @@ public class ShoppingCartControllerTest {
                 .andExpect(jsonPath("$.errors[0].message", is("Wrong Shopping Cart id")));
     }
 
+    @Test
+    @DisplayName("Should expect merged cart from cart to")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void mergeCartFromToTest() throws Exception {
 
+        mockMvc.perform(post("/shoppingCart/merge/from/900/to/11")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.id", is(11)))
+                .andExpect(jsonPath("$.itemsAmount", is(3)))
+                .andExpect(jsonPath("$.shoppingSet[0].id.branchId", is(5)))
+                .andExpect(jsonPath("$.shoppingSet[1].id.branchId", is(6)));
+    }
 }
