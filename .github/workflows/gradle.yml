@@ -39,7 +39,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{APP_DOCKER_REPO}}
+          repository: ${{env.APP_DOCKER_REPO}}
           tags: 0.0.${{ github.run_number }}
 
       - name: Install doctl
