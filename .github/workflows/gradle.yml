@@ -32,4 +32,4 @@ jobs:
         APP_DOCKER_REPO: maxmorev/eshop-customer-order-api
 
     - name: Print name for docker repository
-      run: echo ${{APP_DOCKER_REPO}}
+      run: echo ${APP_DOCKER_REPO}
