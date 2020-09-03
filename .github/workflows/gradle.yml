@@ -29,7 +29,7 @@ jobs:
     - name: set environment variables
       uses: allenevans/set-env@v1.0.0
       with:
-        APP_DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
+        APP_DOCKER_REPO: maxmorev/eshop-customer-order-api
 
     - name: Print name for docker repository
-      run: echo 'Docker repo ${{APP_DOCKER_REPO}}'
+      run: echo ${{APP_DOCKER_REPO}}
