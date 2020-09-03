@@ -26,7 +26,9 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
-    - name: Set name for docker repository
-      run: ::set-env name=DOCKER_REPO::maxmorev/eshop-customer-order-api
+    - name: set environment variables
+      uses: allenevans/set-env@v1.0.0
+        with:
+          DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
     - name: Print name for docker repository
       run: echo 'Docker repo {{DOCKER_REPO}}'
