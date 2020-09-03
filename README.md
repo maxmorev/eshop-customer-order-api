@@ -1,3 +1,2 @@
 # A part of E-Shop project
-The following was discovered as part of building this project:
-
+The following app used as a part of e-shop
