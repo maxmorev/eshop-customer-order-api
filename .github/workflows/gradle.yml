@@ -23,13 +23,13 @@ jobs:
         java-version: 11
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+#    - name: Build with Gradle
+#      run: ./gradlew build
 
     - name: set environment variables
       uses: allenevans/set-env@v1.0.0
       with:
-        DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
+        APP_DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
 
     - name: Print name for docker repository
       run: echo 'Docker repo {{DOCKER_REPO}}'
