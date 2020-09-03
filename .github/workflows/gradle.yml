@@ -28,7 +28,8 @@ jobs:
 
     - name: set environment variables
       uses: allenevans/set-env@v1.0.0
-        with:
-          DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
+      with:
+        DOCKER_REPO: 'maxmorev/eshop-customer-order-api'
+
     - name: Print name for docker repository
       run: echo 'Docker repo {{DOCKER_REPO}}'
