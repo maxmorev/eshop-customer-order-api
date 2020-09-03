@@ -1,7 +1,13 @@
-FROM adoptopenjdk/openjdk13:jre-13.0.2_8-alpine
+FROM adoptopenjdk/openjdk11:jre-11.0.6_10-alpine
 MAINTAINER  Maxim Morev <maxmorev@gmail.com>
-RUN mkdir /opt/app
-WORKDIR /opt/app
-COPY build/libs/eshop-customer-order-api-0.0.1.jar /opt/app
+RUN mkdir /opt/micro \
+&& mkdir /opt/micro/h2 \
+&& chown -R 1001 /opt/micro \
+&& chmod u=rwx,g=rx /opt/micro \
+&& chown -R 1001:root /opt/micro
+# Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
+WORKDIR /opt/micro
+COPY build/libs/eshop-customer-order-api-*.jar /opt/micro/app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "/opt/app/eshop-customer-order-api-0.0.1.jar"]
+USER 1001
+CMD ["java", "-jar", "/opt/micro/app.jar"]

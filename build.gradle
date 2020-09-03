@@ -6,7 +6,7 @@ plugins {
 
 group = 'ru.maxmorev.eshop'
 version = '0.0.1'
-sourceCompatibility = '13'
+sourceCompatibility = '11'
 
 configurations {
 	compileOnly {
@@ -29,7 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.projectlombok:lombok'
-	implementation 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
 
 	//TEST
 	testAnnotationProcessor 'org.projectlombok:lombok'

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eshop
+  labels:
+    app.kubernetes.io/name: eshop
+    app.kubernetes.io/instance: eshop
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: eshop
+  name: pvc-customer-order-api
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
