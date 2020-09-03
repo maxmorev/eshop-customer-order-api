@@ -48,7 +48,7 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Update deployment file
-        run: TAG=0.0.$(echo ${{ github.run_number }} | head -c7) && sed -i 's|${APP_DOCKER_REPO}:latest|${APP_DOCKER_REPO}:'${TAG}'|' $GITHUB_WORKSPACE/k8s-deployment.yaml
+        run: TAG=0.0.$(echo ${{ github.run_number }} | head -c7) && sed -i 's|${{env.APP_DOCKER_REPO}}:latest|${{env.APP_DOCKER_REPO}}:'${TAG}'|' $GITHUB_WORKSPACE/k8s-deployment.yaml
 
       - name: Print image version
         run: cat $GITHUB_WORKSPACE/k8s-deployment.yaml | grep image
