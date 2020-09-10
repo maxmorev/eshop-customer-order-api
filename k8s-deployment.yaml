@@ -57,16 +57,16 @@ spec:
               name: springboot
           resources:
             requests:
-              memory: "500Mi"
+              memory: "256Mi"
               cpu: "250m" # 1/4 core
             limits:
-              memory: "500Mi"
-              cpu: "250m" # 1/2 core
+              memory: "512Mi"
+              cpu: "500m" # 1/2 core
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 90
+            initialDelaySeconds: 50
             timeoutSeconds: 5
             periodSeconds: 3
             failureThreshold: 1
@@ -74,7 +74,7 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 100
+            initialDelaySeconds: 60
             timeoutSeconds: 2
             periodSeconds: 8
             failureThreshold: 1
