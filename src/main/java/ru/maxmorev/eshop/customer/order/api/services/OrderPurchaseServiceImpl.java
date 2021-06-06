@@ -14,6 +14,7 @@ import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
 import ru.maxmorev.eshop.customer.order.api.entities.Purchase;
 import ru.maxmorev.eshop.customer.order.api.repository.CustomerOrderRepository;
 import ru.maxmorev.eshop.customer.order.api.repository.ShoppingCartRepository;
+import ru.maxmorev.eshop.customer.order.api.request.PaymentInitialRequest;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 
@@ -194,4 +195,13 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
                 CustomerOrderStatus.AWAITING_PAYMENT));
     }
 
+    @Override
+    public Optional<CustomerOrder> paymentInitial(PaymentInitialRequest paymentRequest) {
+        return customerOrderRepository.findById(paymentRequest.getOrderId())
+                .map(customerOrder -> {
+                    customerOrder.setPaymentID(paymentRequest.getPaymentID());
+                    customerOrder.setStatus(CustomerOrderStatus.AWAITING_PAYMENT);
+                    return customerOrderRepository.save(customerOrder);
+                });
+    }
 }

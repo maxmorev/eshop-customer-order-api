@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
+import ru.maxmorev.eshop.customer.order.api.request.PaymentInitialRequest;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 
 import javax.persistence.EntityManager;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -83,6 +85,12 @@ public class OrderPurchaseServiceTest {
         em.flush();
         Optional<CustomerOrder> order = orderPurchaseService.findOrder(newOrder.getId());
         assertTrue(order.isPresent());
+        //this is horrible test
+        order.ifPresent(createdOrder -> {
+            assertEquals("AWAITING_PAYMENT", createdOrder.getStatus().name());
+            assertNull(createdOrder.getPaymentID());
+        });
+
     }
 
     @Test
@@ -261,6 +269,28 @@ public class OrderPurchaseServiceTest {
         var page = orderPurchaseService.getOrdersForAdmin(null, null, null, null);
         assertEquals(1, page.getTotalRecords());
 
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("should update payment initial attributes")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void paymentInitial() {
+        PaymentInitialRequest initialPaymentRequest = new PaymentInitialRequest()
+                .setPaymentID("INITIAL-PAYMENT")
+                .setOrderId(16L);
+        orderPurchaseService.paymentInitial(initialPaymentRequest).ifPresent(updatedOrder -> {
+            assertEquals(16L, updatedOrder.getId());
+            assertEquals("INITIAL-PAYMENT", updatedOrder.getPaymentID());
+            assertEquals("AWAITING_PAYMENT", updatedOrder.getStatus().name());
+        });
     }
 
 

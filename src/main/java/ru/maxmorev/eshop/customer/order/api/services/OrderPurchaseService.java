@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
+import ru.maxmorev.eshop.customer.order.api.request.PaymentInitialRequest;
 import ru.maxmorev.eshop.customer.order.api.request.PurchaseInfoRequest;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
 
@@ -38,5 +39,7 @@ public interface OrderPurchaseService {
     List<CustomerOrder> findOrderListForCustomer(Long customerId);
 
     OrderGrid getOrdersForAdmin(Integer page, Integer rows, String sortBy, String order);
+
+    Optional<CustomerOrder> paymentInitial(PaymentInitialRequest paymentRequest);
 
 }

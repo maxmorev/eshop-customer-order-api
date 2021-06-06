@@ -1,5 +1,8 @@
 package ru.maxmorev.eshop.customer.order.api.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
@@ -18,15 +21,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
+import ru.maxmorev.eshop.customer.order.api.request.PaymentInitialRequest;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 4555)
@@ -37,7 +43,8 @@ public class OrderPurchaseControllerTest {
 
     private static final Long APPROVED_ORDER_ID = 25L;
     private static final Long AWAITING_ORDER_ID = 16L;
-
+    @Autowired
+    private ObjectMapper jsonMapper;
     @Autowired
     private MockMvc mockMvc;
 
@@ -59,6 +66,7 @@ public class OrderPurchaseControllerTest {
                 .orderId(16L)
                 .paymentProvider(PaymentProvider.Paypal.name())
                 .build();
+        log.info("Request: {}", opc.toString());
         mockMvc.perform(put("/order/confirmation/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(opc.toString()))
@@ -120,7 +128,6 @@ public class OrderPurchaseControllerTest {
                 .andDo(print())
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Invalid order status")));
-
     }
 
     @Test
@@ -264,5 +271,59 @@ public class OrderPurchaseControllerTest {
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.message", is("Success")));
     }
+
+    @Test
+    @SneakyThrows
+    @DisplayName("Should set paymentID")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void paymentInitial() {
+        PaymentInitialRequest paymentInitial = new PaymentInitialRequest()
+                .setPaymentID("INITIAL-PAYMENT-ID")
+                .setOrderId(16L);
+        mockMvc.perform(put("/order/payment/initial")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(paymentInitial)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.status", is("success")))
+                .andExpect(jsonPath("$.data.id", is(16)))
+                .andExpect(jsonPath("$.data.status", is("AWAITING_PAYMENT")))
+                .andExpect(jsonPath("$.data.paymentID", is("INITIAL-PAYMENT-ID")))
+        ;
+    }
+
+    @Test
+    @SneakyThrows
+    @DisplayName("Should return RestResponse with fail status")
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void paymentInitialNotFoundOrder() {
+        PaymentInitialRequest paymentInitial = new PaymentInitialRequest()
+                .setPaymentID("INITIAL-PAYMENT-ID")
+                .setOrderId(166L);
+        mockMvc.perform(put("/order/payment/initial")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(paymentInitial)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.status", is("fail")))
+                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage", is("Order not found")))
+        ;
+    }
+
 
 }

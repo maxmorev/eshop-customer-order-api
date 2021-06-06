@@ -4,6 +4,7 @@ package ru.maxmorev.eshop.customer.order.api.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,10 +15,12 @@ import ru.maxmorev.eshop.customer.order.api.annotation.CustomerOrderStatus;
 import ru.maxmorev.eshop.customer.order.api.annotation.PaymentProvider;
 import ru.maxmorev.eshop.customer.order.api.entities.CustomerOrder;
 import ru.maxmorev.eshop.customer.order.api.request.CreateOrderRequest;
+import ru.maxmorev.eshop.customer.order.api.request.PaymentInitialRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderIdRequest;
 import ru.maxmorev.eshop.customer.order.api.request.OrderPaymentConfirmation;
 import ru.maxmorev.eshop.customer.order.api.response.Message;
 import ru.maxmorev.eshop.customer.order.api.response.OrderGrid;
+import ru.maxmorev.eshop.customer.order.api.response.RestResponse;
 import ru.maxmorev.eshop.customer.order.api.services.OrderPurchaseService;
 
 import javax.validation.Valid;
@@ -135,6 +138,16 @@ public class OrderPurchaseController {
     @ResponseBody
     public List<CustomerOrder> findExpiredOrders() {
         return orderPurchaseService.findExpiredOrders();
+    }
+
+    @ResponseBody
+    @PutMapping(path = "/order/payment/initial")
+    public RestResponse<CustomerOrder> paymentInitial(@RequestBody
+                                     @Valid PaymentInitialRequest paymentRequest,
+                                                     Locale locale) {
+        return orderPurchaseService.paymentInitial(paymentRequest)
+                .map(RestResponse::success)
+                .orElse(RestResponse.fail("Order not found"));
     }
 
 }
