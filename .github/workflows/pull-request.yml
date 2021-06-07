@@ -3,8 +3,8 @@
 name: Java CI with Maven
 
 on:
-  pull_request:
-    branches: [ develop ]
+  push:
+    branches-ignore: [develop]
 
 jobs:
   build:

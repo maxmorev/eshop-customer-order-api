@@ -286,6 +286,7 @@ public class OrderPurchaseControllerTest {
     public void paymentInitial() {
         PaymentInitialRequest paymentInitial = new PaymentInitialRequest()
                 .setPaymentID("INITIAL-PAYMENT-ID")
+                .setPaymentProvider("Yoomoney")
                 .setOrderId(16L);
         mockMvc.perform(put("/order/payment/initial")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -296,6 +297,7 @@ public class OrderPurchaseControllerTest {
                 .andExpect(jsonPath("$.data.id", is(16)))
                 .andExpect(jsonPath("$.data.status", is("AWAITING_PAYMENT")))
                 .andExpect(jsonPath("$.data.paymentID", is("INITIAL-PAYMENT-ID")))
+                .andExpect(jsonPath("$.data.paymentProvider", is("Yoomoney")))
         ;
     }
 

@@ -201,6 +201,7 @@ public class OrderPurchaseServiceImpl implements OrderPurchaseService {
                 .map(customerOrder -> {
                     customerOrder.setPaymentID(paymentRequest.getPaymentID());
                     customerOrder.setStatus(CustomerOrderStatus.AWAITING_PAYMENT);
+                    customerOrder.setPaymentProvider(PaymentProvider.valueOf(paymentRequest.getPaymentProvider()));
                     return customerOrderRepository.save(customerOrder);
                 });
     }

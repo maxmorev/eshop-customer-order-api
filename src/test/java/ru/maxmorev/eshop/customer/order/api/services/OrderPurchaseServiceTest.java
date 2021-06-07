@@ -285,11 +285,13 @@ public class OrderPurchaseServiceTest {
     public void paymentInitial() {
         PaymentInitialRequest initialPaymentRequest = new PaymentInitialRequest()
                 .setPaymentID("INITIAL-PAYMENT")
+                .setPaymentProvider("Yoomoney")
                 .setOrderId(16L);
         orderPurchaseService.paymentInitial(initialPaymentRequest).ifPresent(updatedOrder -> {
             assertEquals(16L, updatedOrder.getId());
             assertEquals("INITIAL-PAYMENT", updatedOrder.getPaymentID());
             assertEquals("AWAITING_PAYMENT", updatedOrder.getStatus().name());
+            assertEquals("Yoomoney", updatedOrder.getPaymentProvider().name());
         });
     }
 
