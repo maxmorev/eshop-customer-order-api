@@ -3,6 +3,7 @@ package ru.maxmorev.eshop.customer.order.api.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -134,8 +135,8 @@ public class OrderPurchaseController {
                         order);
     }
 
-    @RequestMapping(path = "/order/list/expired", method = RequestMethod.GET)
     @ResponseBody
+    @GetMapping(path = "/order/list/expired")
     public List<CustomerOrder> findExpiredOrders() {
         return orderPurchaseService.findExpiredOrders();
     }

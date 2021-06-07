@@ -8,4 +8,5 @@ import lombok.experimental.Accessors;
 public class PaymentInitialRequest {
     private Long orderId;
     private String paymentID;
+    private String paymentProvider;
 }
