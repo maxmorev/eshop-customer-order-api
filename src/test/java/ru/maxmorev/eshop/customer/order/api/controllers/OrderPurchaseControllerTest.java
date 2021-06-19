@@ -327,5 +327,23 @@ public class OrderPurchaseControllerTest {
         ;
     }
 
+    @Test
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void adminAllCustomerOrderList() throws Exception {
+        mockMvc.perform(get("/order/list/all"))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.currentPage", is(1)))
+                .andExpect(jsonPath("$.orderData").isArray())
+                ;
+    }
 
 }
