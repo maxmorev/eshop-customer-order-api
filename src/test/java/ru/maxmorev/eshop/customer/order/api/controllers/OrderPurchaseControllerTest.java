@@ -343,7 +343,45 @@ public class OrderPurchaseControllerTest {
                 .andExpect(jsonPath("$.totalPages", is(1)))
                 .andExpect(jsonPath("$.currentPage", is(1)))
                 .andExpect(jsonPath("$.orderData").isArray())
-                ;
+        ;
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void removeExpiredOrder() throws Exception {
+        mockMvc.perform(delete("/order/expired/16"))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.status", is("success")))
+        ;
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(value = "classpath:db/purchase/test-data.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(value = "classpath:db/purchase/clean-up.sql",
+                    config = @SqlConfig(encoding = "utf-8", separator = ";", commentPrefix = "--"),
+                    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD),
+    })
+    public void customerOrderCancel() throws Exception {
+        mockMvc.perform(
+                put("/order/by/customer/cancellation/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"orderId\":16,\"customerId\":10}")
+        )
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.status", is("success")))
+        ;
     }
 
 }
